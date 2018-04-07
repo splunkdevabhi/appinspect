@@ -84,7 +84,8 @@ class ValidationReportJUnitXMLFormatter(validation_report_formatter.ValidationRe
         format.
         """
         testcase_element_attributes = {"classname": group.name,
-                                       "name": check.name}
+                                       "name": check.name,
+                                       "time": "0"}
         testcase_element = Element("testcase",
                                    testcase_element_attributes)
         test_case_element_system_out = SubElement(testcase_element, 'system-out')
