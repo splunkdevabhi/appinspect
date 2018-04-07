@@ -1,0 +1,28 @@
+Metadata-Version: 1.1
+Name: splunk-appinspect
+Version: 1.5.3.143
+Summary: Automatic validation checks for Splunk Apps
+Home-page: https://splunk.com
+Author: Splunk
+Author-email: appinspect@splunk.com
+License: Other/Proprietary License
+Download-URL: http://dev.splunk.com/goto/appinspectdownload
+Description: AppInspect is a tool for assessing a Splunk App's compliance with Splunk recommended development practices, by using static analysis. AppInspect is open for extension, allowing other teams to compose checks that meet their domain specific needs for semi- or fully-automated analysis and validation of Splunk Apps.
+Keywords: AppInspect,Certification,Splunk,Splunk AppInspect,Testing
+Platform: MacOS
+Platform: Microsoft
+Platform: Unix
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: Other/Proprietary License
+Classifier: Natural Language :: English
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Microsoft
+Classifier: Operating System :: Unix
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 2 :: Only
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Software Development :: Testing
+Classifier: Topic :: Utilities

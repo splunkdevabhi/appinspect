@@ -1,0 +1,53 @@
+<html>
+
+<head>
+    <!--  -->
+    <style type="text/css">
+    table {
+        width: 90%;
+        border-collapse: collapse;
+        border: 1px solid DarkGray;
+    }
+
+    table.listTable td {
+        font-size: 12px;
+        padding: 10px 5px 10px 10px;
+        border: 1px solid DarkGray;
+    }
+
+    table.listTable th {
+        border: 1px solid DarkGray;
+        background-color: #ccc;
+        font-size: 14px;
+        padding: 10px 5px 10px 10px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="superWrapper">
+        <div class="container">
+            <h1>AppInspect Tag Reference</h1>
+            <p>This topic provides descriptions of each of the built-in Splunk AppInspect tags. AppInspect uses tags to provide a mechanism of selection and filtering for validation. Each check is tagged with a keyword that specifies what the check is relevant to. For a full list of the checks that are built into AppInspect, see <a href="/view/app-cert/SP-CAAAE3H">App certification criteria</a>.</p>
+            <em>{{ current_date }} (v{{ current_splunk_appinspect_version }})</em>
+            <table class="listTable">
+                <tbody>
+                    <tr>
+                        <th>Tag</th>
+                        <th>Description</th>
+                    </tr>
+                    {% for key, value in splunk_appinspect_tags.iteritems() %}
+                    <tr>
+                        <td>
+                            <tt>{{key}}</tt>
+                        </td>
+                        <td>{{value["description"]}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

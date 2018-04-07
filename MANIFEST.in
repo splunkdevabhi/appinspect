@@ -1,0 +1,6 @@
+# This file is required in order to include data_files when running the command `python setup.py sdist`
+include license-eula.rtf
+include license-eula.txt
+include README.md
+global-exclude *.pyc *.pyo
+recursive-exclude test *

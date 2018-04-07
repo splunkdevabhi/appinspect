@@ -1,0 +1,36 @@
+# Used for unlikely situation of splunk_appinspect in wrong python version
+import environment_validator
+environment_validator.validate_python_version()
+
+from app import App
+import checks
+import main
+import command_line_helpers
+import documentation
+from decorators import *
+import formatters
+import infra
+import iter_ext
+import listeners
+import offense
+import reporter
+import resource_manager
+import validator
+import validation_report
+import version
+
+import alert_actions_configuration_file
+import app_configuration_file
+import app_package_handler
+import authentication_configuration_file
+import commands_configuration_file
+import configuration_file
+import configuration_parser
+import indexes_configuration_file
+import inputs_configuration_file
+import inputs_specification_file
+import props_configuration_file
+import rest_map_configuration_file
+import saved_searches_configuration_file
+import transforms_configuration_file
+import visualizations_configuration_file

@@ -1,0 +1,69 @@
+<html>
+
+<head>
+    <!--  -->
+    <style type="text/css">
+    table {
+        width: 90%;
+        border-collapse: collapse;
+        border: 1px solid DarkGray;
+    }
+
+    table.listTable td {
+        font-size: 12px;
+        padding: 10px 5px 10px 10px;
+        border: 1px solid DarkGray;
+    }
+
+    table.listTable th {
+        border: 1px solid DarkGray;
+        background-color: #ccc;
+        font-size: 14px;
+        padding: 10px 5px 10px 10px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="superWrapper">
+        <div class="container">
+            <h1>Application Certification Criteria</h1>
+            <h2><a name="checklist"></a>Checklist for submission</h2>
+            <em>{{ current_date }} (v{{ current_splunk_appinspect_version }})</em>
+
+            {% for group in splunk_appinspect_core_groups %}
+                {{ group.doc_html() }}
+                <table class="listTable">
+                    <tbody>
+                        <tr>
+                            <th>Check Name</th>
+
+                            {% for certfication_area in splunk_appinspect_certification_areas %}
+                                <th>{{ certfication_area }}</th>
+                            {% endfor %}
+                            <th>Description</th>
+                        </tr>
+
+                        {% for check in group.checks() %}
+                            <tr>
+                                <td>{{ check.name }}</td>
+                                {% for certfication_area in splunk_appinspect_certification_areas %}
+                                    {% if check.has_tag([certfication_area]) %}
+                                        <td align="center">x</td>
+                                    {% else %}
+                                        <td></td>
+                                    {% endif %}
+                                {% endfor %}
+                                <td>{{ check.doc() }}</td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+                <br/>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>
