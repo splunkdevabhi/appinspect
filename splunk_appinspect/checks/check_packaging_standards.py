@@ -132,7 +132,7 @@ def check_that_extracted_splunk_app_contains_default_app_conf_file_with_valid_ve
                            " [launcher] stanza using the `version` property"
                            " formatted as"
                            " `Major.Minor.Revision`.")
-        reporter.fail(reporter_output)
+        reporter.warn(reporter_output)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "appapproval", "cloud", "packaging_standards", "self-service")
