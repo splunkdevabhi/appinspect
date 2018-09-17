@@ -34,7 +34,7 @@ def check_app_version(app, reporter):
             config.has_option('launcher', 'version')
             version = config.get('launcher', 'version')
 
-            reporter.assert_fail(re.match(r"^\d{1,3}.\d{1,3}(.\d{1,3})(\s?\w[\w\d]{,9})?$", version),
+            reporter.fail(re.match(r"^\d{1,3}.\d{1,3}(.\d{1,3})(\s?\w[\w\d]{,9})?$", version),
                                  "Major, minor, build version numbering is required.")
 
         except splunk_appinspect.configuration_file.NoOptionError:
