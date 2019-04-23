@@ -1,16 +1,14 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
-### Transforms.conf File Standards
+### Transforms.conf file standards
 
-Ensure that the transforms.conf file located in the `default` folder is well
-formed and valid.
-
-- [transforms.conf](http://docs.splunk.com/Documentation/Splunk/latest/Admin/Transformsconf)
+Ensure that the **transforms.conf** file located in the **/default** folder is well formed and valid. For more, see <a href="http://docs.splunk.com/Documentation/Splunk/latest/Admin/Transformsconf" target="_blank">transforms.conf</a>.
 """
 
 # Python Standard Library
 import logging
+import os
 # Custom Libraries
 import splunk_appinspect
 import regex as re
@@ -35,17 +33,20 @@ def check_all_lookups_are_used(app, reporter):
             lookup_file_names.add(file)
 
     if app.file_exists("default", "transforms.conf"):
+        file_path = os.path.join("default", "transforms.conf")
         transforms = app.transforms_conf()
         for section in transforms.sections():
             if section.has_option("filename"):
                 lookup_file_name = section.get_option("filename").value
                 transforms_reference_file_names.add(lookup_file_name)
-        for file in (lookup_file_names - transforms_reference_file_names):
+        for filename in (lookup_file_names - transforms_reference_file_names):
             reporter_output = ("Lookup file {} is not referenced in"
-                               " transforms.conf").format(file)
-            reporter.fail(reporter_output)
+                               " transforms.conf. File: {}"
+                               ).format(filename,
+                                        file_path)
+            reporter.fail(reporter_output, file_path)
     else:
-        reporter.not_applicable("No transforms.conf in app")
+        reporter.not_applicable("No transforms.conf in app.")
 
 
 @splunk_appinspect.tags("splunk_appinspect")
@@ -57,25 +58,31 @@ def check_capture_groups_in_transforms(app, reporter):
     """
     if app.file_exists("default", "transforms.conf"):
         transforms = app.transforms_conf()
+        file_path = os.path.join("default", "transforms.conf")
         for section in transforms.sections():
             if section.has_option("REGEX") and section.has_option("FORMAT"):
-                regex = section.get_option("REGEX").value
-                fmt = section.get_option("FORMAT").value
+                regex = section.get_option("REGEX")
+                fmt = section.get_option("FORMAT")
                 try:
                     # Splunk regular expressions are PCRE (Perl Compatible Regular Expressions)
                     # re does not support PCRE, so use regex as re, see import part
-                    pattern = re.compile(regex)
+                    pattern = re.compile(regex.value)
                 except re.error:
                     reporter_output = ("The following stanza contains invalid `REGEX` property."
                                        " Stanza: [{}]"
-                                       " REGEX: {}").format(section.name,
-                                                            regex)
-                    reporter.fail(reporter_output, file_name="default/transforms.conf")
+                                       " REGEX: {}."
+                                       " File: {},"
+                                       " Line: {}"
+                                       ).format(section.name,
+                                                regex.value,
+                                                file_path,
+                                                regex.lineno)
+                    reporter.fail(reporter_output, file_path, regex.lineno)
                     return
                 unused_groups = []
 
                 for i in range(pattern.groups):
-                    if fmt.find("$" + str(i + 1)) < 0:
+                    if fmt.value.find("$" + str(i + 1)) < 0:
                         unused_groups.append("$" + str(i + 1))
 
                 if len(unused_groups) > 0:
@@ -86,12 +93,15 @@ def check_capture_groups_in_transforms(app, reporter):
                                        " REGEX: {}"
                                        " FORMAT: {}."
                                        " If you don't want to capture any group in your regexp,"
-                                       " please use a non-capturing expression,"
-                                       " see {} for details.").format(unused_groups,
-                                                                      section.name,
-                                                                      regex,
-                                                                      fmt,
-                                                                      url)
-                    reporter.fail(reporter_output, file_name="default/transforms.conf")
+                                       " please use a non-capturing expression."
+                                       " See {} for details. File: {}, Line: {}."
+                                       ).format(unused_groups,
+                                                section.name,
+                                                regex,
+                                                fmt.value,
+                                                url,
+                                                file_path,
+                                                section.lineno)
+                    reporter.fail(reporter_output, file_path, section.lineno)
     else:
-        reporter.not_applicable("No transforms.conf in app")
+        reporter.not_applicable("No transforms.conf in app.")

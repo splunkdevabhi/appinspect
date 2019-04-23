@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import os
@@ -44,11 +44,11 @@ class AlertActions(object):
         }
 
     def get_alert_actions(self):
-        for section in self.get_configuration_file().section_names():
-
+        configuration_file = self.get_configuration_file()
+        for section in configuration_file.sections():
             alert_action = AlertAction(section)
 
-            for key, value in self.get_configuration_file().items(section):
+            for key, value, lineno in self.get_configuration_file().items(section.name):
                 if key.lower() == 'alert.execute.cmd':
                     alert_action.alert_execute_cmd = os.path.join(self.app.app_dir,
                                                                   'bin/',
@@ -61,7 +61,7 @@ class AlertActions(object):
                 alert_action.workflow_html_path = os.path.join(self.app.app_dir,
                                                                'default/data/ui/alerts/',
                                                                alert_action.name + '.html')
-                alert_action.args[key] = [value]
+                alert_action.args[key] = [value, lineno]
 
             # If an exe is specified in the stanza this overrides other bin
             # files
@@ -184,8 +184,9 @@ class AlertAction(object):
     object.
     """
 
-    def __init__(self, name, alert_execute_cmd="", icon_path="", is_custom=True, workflow_html_path=""):
-        self.name = name
+    def __init__(self, section, alert_execute_cmd="", icon_path="", is_custom=True, workflow_html_path=""):
+        self.name = section.name
+        self.lineno = section.lineno
         self.alert_execute_cmd = alert_execute_cmd
         self.icon_path = icon_path
         self.is_custom = is_custom

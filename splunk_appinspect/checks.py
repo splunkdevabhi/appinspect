@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """Checks contains both the group class and the check class. These classes
 serve as the basic scaffolding to connect the implied structure of validation
@@ -265,19 +265,32 @@ class Group(object):
     def doc_text(self):
         """Returns the plain text version of the doc string."""
         doc = self.doc_raw()
-        soup = bs4.BeautifulSoup(markdown.markdown(doc), "xml")
+        soup = bs4.BeautifulSoup(markdown.markdown(doc), "lxml")
         text = ''.join(soup.findAll(text=True))
         if self.custom_group:
             text = text + " (CUSTOM CHECK GROUP)"
         return text
 
-    def doc_html(self):
-        """Returns the docstring (provided in markdown) as a html element."""
-        # TODO: tests needed
+    def doc_name_human_readable(self):
+        """Returns the contents of the Markdown h3 element from the top of the
+        group's docstring."""
         html = markdown.markdown(self.doc_raw(),
                                  extensions=['markdown.extensions.fenced_code'])
+        bs_html = bs4.BeautifulSoup(html, 'html.parser')
+        if bs_html.h3 is not None and len(bs_html.h3.contents) > 0:
+            return unicode(bs_html.h3.contents[0]).strip()
+        return u""
 
-        return html
+    def doc_html(self):
+        """Returns the docstring (provided in markdown) as a html element."""
+        html = markdown.markdown(self.doc_raw(),
+                                 extensions=['markdown.extensions.fenced_code'])
+        bs_html = bs4.BeautifulSoup(html, 'html.parser')
+        # Create a <a name="check_group_name"></a> to optionally be used for TOC
+        new_tag = bs_html.new_tag('a')
+        new_tag['name'] = self.name
+        bs_html.h3.contents.insert(0, new_tag)
+        return unicode(bs_html)
 
     def has_checks(self, **kwargs):
         """Checks to see whether the group has checks or not.
@@ -630,7 +643,7 @@ class Check(object):
         p = re.compile(r'([ \t])+')
         doc = p.sub(r'\1', self.doc_raw().strip())
 
-        soup = bs4.BeautifulSoup(markdown.markdown(doc), "xml")
+        soup = bs4.BeautifulSoup(markdown.markdown(doc), "lxml")
         text = ''.join(soup.findAll(text=True))
         return text
 
@@ -729,6 +742,11 @@ class Check(object):
         #   included_tags
         # If included_tags and excluded_tags contain the same tag then
         #   included_tags take precedent
+        # If included_tags and excluded_tags contain the different tags then
+        #   both of them will match
+        if included_excluded_intersection_set:
+            excluded_tags_set -= included_excluded_intersection_set
+
         if(not included_tags_set and
                 not excluded_tags_set):
             return True
@@ -740,8 +758,8 @@ class Check(object):
             return check_tags_set.isdisjoint(excluded_tags_set)
         elif(included_tags_set and
              excluded_tags_set):
-            inclusive_set = included_tags_set.union(included_excluded_intersection_set)
-            return (not check_tags_set.isdisjoint(inclusive_set))
+            return (not check_tags_set.isdisjoint(included_tags_set) 
+                    and check_tags_set.isdisjoint(excluded_tags_set))
 
     def run(self, app, resource_manager_context={}):
         """This is in a way the central method of this library.  A check can be

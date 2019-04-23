@@ -37,7 +37,7 @@ def generate_critera_as_html(included_tags=None, excluded_tags=None, custom_chec
     template = env.get_template("html_criteria.html")
 
     current_date = datetime.datetime.now()
-    formatted_current_date = current_date.strftime("%m %B, %Y")
+    formatted_current_date = current_date.strftime("%d %B, %Y")
     use_all_tags = (not included_tags and not excluded_tags)
 
     # defaults to inclusion of ALL tag if not specified
@@ -60,9 +60,13 @@ def generate_critera_as_html(included_tags=None, excluded_tags=None, custom_chec
     tags_to_show.sort()
     tags_to_show = set(tags_to_show)
 
+    # We really only want splunk_appinspect and cloud to show up as columns
+    # to be checked, yeah I'm just hard coding these because they are "special"
+    splunk_appinspect_certification_areas = ["splunk_appinspect", "cloud"]
+
     rendered_criteria_html_markup = template.render(current_date=formatted_current_date,
                                                     current_splunk_appinspect_version=splunk_appinspect.version.__version__,
-                                                    splunk_appinspect_certification_areas=tags_to_show,
+                                                    splunk_appinspect_certification_areas=splunk_appinspect_certification_areas,
                                                     splunk_appinspect_core_groups=standard_groups_iterator,
                                                     splunk_appinspect_custom_groups=custom_groups_iterator)
 

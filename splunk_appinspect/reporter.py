@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """ The Reporter class is intended to be used as a general interface to send
 errors detected during validation to.
@@ -17,6 +17,7 @@ import os.path
 import traceback
 import string
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 # Used for storing the records, no ReportRecord class created because OO not
@@ -28,14 +29,33 @@ STATUS_TYPES = ['error', 'failure', 'skipped',
                 'manual_check', 'not_applicable', 'warning', 'success']
 STATUS_PRIORITIES = {}
 
+FILE_PATTERN = r'(F|f)ile:\s*[.0-9a-zA-Z\\/_-]*'
+LINE_PATTERN = r'(L|l)ine\s*\w*:\s*\d*'
+
 for idx, status in enumerate(STATUS_TYPES):
     STATUS_PRIORITIES[status] = idx
-
 
 def _reduce_record_summary(acc, x):
     acc[x.result] = acc.get(x.result, 0) + 1
     return acc
 
+def _extract_values(pattern, message):
+    """Find the filename AND line depending on the pattern."""
+    v1 = None
+    v2 = None
+    result = re.search(pattern, message)
+    if result:
+        group = result.group()
+        v1, v2 = group.split(":", 1)
+        if v1 and v2:
+            v1 = v1.strip()
+            v2 = v2.strip()
+    return v1, v2
+
+def extract_filename_lineno(message):
+    filename = _extract_values(FILE_PATTERN, message)[1]
+    lineno = _extract_values(LINE_PATTERN, message)[1]
+    return filename, lineno
 
 class Reporter(object):
 
@@ -121,10 +141,10 @@ class Reporter(object):
         reporter_output = self.__format_message(message, file_name, line_number)
         self.__save_result_message('warning', reporter_output, inspect.currentframe(), file_name, line_number)
 
-    def assert_warn(self, assertion, message):
+    def assert_warn(self, assertion, message, file_name=None, line_number=None):
         """If assertion is false, log a warning"""
         if not(assertion):
-            self.warn(message)
+            self.warn(message, file_name, line_number)
 
     def manual_check(self, message, file_name=None, line_number=None):
         """Declare that this check requires a human to validate"""
@@ -135,10 +155,10 @@ class Reporter(object):
                                    file_name,
                                    line_number)
 
-    def assert_manual_check(self, assertion, message):
+    def assert_manual_check(self, assertion, message, file_name=None, line_number=None):
         """If assertion is false, add to a human's todo list"""
         if not(assertion):
-            self.manual_check(message)
+            self.manual_check(message, file_name, line_number)
 
     def not_applicable(self, message):
         """Report that this check does not apply to the current app"""
@@ -166,10 +186,10 @@ class Reporter(object):
         reporter_output = self.__format_message(message, file_name, line_number)
         self.__save_result_message('failure', reporter_output, inspect.currentframe(), file_name, line_number)
 
-    def assert_fail(self, assertion, message):
+    def assert_fail(self, assertion, message, file_name=None, line_number=None):
         """If assertion is false, log failure"""
         if not(assertion):
-            self.fail(message)
+            self.fail(message, file_name, line_number)
 
     def exception(self, exception, category='error'):
         """Error is when there's something wrong with the check script. 

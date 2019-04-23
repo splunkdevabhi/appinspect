@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Standard Python Libraries
 import os
@@ -65,7 +65,35 @@ class InspectedFile(object):
         # In general text file, no need to remove comments
         return content
 
-    def search_for_patterns(self, patterns, excluded_comments=True):
+    def search_for_patterns(self, patterns, excluded_comments=True, regex_option=0):
+        """
+        :param patterns: regex patterns array
+        :param excluded_comments: excluded comment from test
+        :param regex_option: regex option
+        :return: array of match objects
+        """
+
+        matches = []
+
+        with open(self._path) as inspected_file:
+            line_no = 0
+            content = inspected_file.read()
+            if excluded_comments:
+                content = self._remove_comments(content)
+            for line in content.splitlines():
+                line_no += 1
+                for rx in [re.compile(p, regex_option) for p in patterns]:
+                    for p_match in rx.finditer(line):
+                        fileref_output = "{}:{}".format(self._path, line_no)
+                        matches.append((fileref_output, p_match))
+
+        return matches
+
+    def search_for_pattern(self, pattern, excluded_comments=True, regex_option=0):
+        """ Same with search_for_patterns except single pattern."""
+        return self.search_for_patterns([pattern], excluded_comments, regex_option)
+
+    def search_for_crossline_patterns(self, patterns, excluded_comments=True, cross_line=10):
         """
         :param patterns: regex patterns array
         :param excluded_comments: excluded comment from test
@@ -79,19 +107,29 @@ class InspectedFile(object):
             content = inspected_file.read()
             if excluded_comments:
                 content = self._remove_comments(content)
-            for line in content.splitlines():
-                line_no += 1
+
+            lines_content = content.splitlines()
+            lines_count = len(lines_content)
+
+            for line_no in range(0,lines_count):
+                multi_line = ''
+                start_line = line_no
+                end_line = (start_line+cross_line) if (start_line+cross_line) <= lines_count  else lines_count
+                for item in lines_content[start_line:end_line]:
+                    multi_line += item + '\n'
+
                 for rx in [re.compile(p) for p in patterns]:
-                    p_match = rx.search(line)
-                    if (p_match):
-                        fileref_output = "{}:{}".format(self._path, line_no)
-                        matches.append((fileref_output, p_match))
+                    if rx.match(multi_line):
+                        fileref_output = "{}:{}".format(self._path, line_no+1)
+                        matches.append((fileref_output, rx.match(multi_line))) 
 
         return matches
 
-    def search_for_pattern(self, pattern, excluded_comments=True):
-        """ Same with search_for_patterns except single pattern."""
-        return self.search_for_patterns([pattern], excluded_comments)
+    def search_for_crossline_pattern(self, pattern, excluded_comments=True, cross_line=10):
+        """ Same with search_for_crossline_patterns except single pattern."""
+        return self.search_for_crossline_patterns(patterns=[pattern],
+                                                  excluded_comments=excluded_comments,
+                                                  cross_line=cross_line)
 
 
 class PythonFile(InspectedFile):
@@ -115,7 +153,7 @@ class PythonFile(InspectedFile):
             )
             | (?P<end>
                 "{3}\s*$	# end triple double quotes
-                | '{3}\s*$	# end single double quotes
+                | '{3}\s*$	# end trible single quotes
             )
         """,
         re.VERBOSE

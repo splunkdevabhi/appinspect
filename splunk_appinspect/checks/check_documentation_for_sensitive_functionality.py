@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Appropriate use of sensitive functionality
@@ -20,26 +20,13 @@ logger = logging.getLogger(__name__)
 @splunk_appinspect.tags('splunk_appinspect', 'manual')
 @splunk_appinspect.cert_version(min='1.0.0')
 def check_uses_eventgen(app, reporter):
-    """Check that use of 'eventgen.conf' is explained in the app's 
+    """Check that use of 'eventgen.conf' is explained in the app's
     documentation.
     """
     if app.file_exists('default', 'eventgen.conf'):
         reporter.manual_check("Documentation will be read during code review.", 'default/eventgen.conf')
     else:
         reporter.not_applicable("No eventgen.conf file exists.")
-
-
-@splunk_appinspect.tags('splunk_appinspect', 'manual')
-@splunk_appinspect.cert_version(min='1.0.0')
-def check_creates_index(app, reporter):
-    """Check that indexes created by the app are explained in the app's 
-    documentation.
-    """
-    # check indexes.conf
-    if app.file_exists('default', 'indexes.conf'):
-        reporter.manual_check("Documentation will be read during code review.", 'default/indexes.conf')
-    else:
-        reporter.not_applicable("No indexes.conf file exists.")
 
 
 @splunk_appinspect.tags('splunk_appinspect', 'manual')
@@ -103,7 +90,7 @@ def check_initiates_outbound_communications(app, reporter):
     """
     if app.file_exists('default', 'outputs.conf'):
         reporter.manual_check(
-            "can't read documentation, can't scan for outbound connections", 'default/outputs.conf')
+            "Can't read documentation, can't scan for outbound connections", 'default/outputs.conf')
     else:
         reporter.not_applicable("No outputs.conf exists.")
 

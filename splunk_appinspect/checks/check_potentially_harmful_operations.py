@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Operating system standards
@@ -50,16 +50,20 @@ def check_hard_coded_paths(app, reporter):
     for result, match in results:
         file_name, line_number = result.rsplit(":", 1)
         if platform.system() == "Windows":
-            reporter_output = ("{} will be checked for hard-coded paths during code review.").format(result)
+            reporter_output = ("{} will be checked for hard-coded paths during code review. "
+                               "File: {}, Line: {}."
+                               ).format(result,
+                                        file_name,
+                                        line_number)
             reporter.manual_check(reporter_output, file_name, line_number)
         else:
             # Only search text files, not binaries
             if app.is_text(file_name):
-                reporter_output = ("Found possible hard-coded path '{}'"
-                                   " File: {}"
-                                   " Line: {}").format(match.group(),
-                                                       result,
-                                                       line_number)
+                reporter_output = ("Found possible hard-coded path '{}'."
+                                   "File: {}, Line: {}."
+                                   ).format(match.group(),
+                                            file_name,
+                                            line_number)
                 reporter.manual_check(reporter_output, file_name, line_number)
 
 
@@ -87,14 +91,13 @@ def check_user_privileges(app, reporter):
         reporter.manual_check(reporter_output, filepath, line_number)
 
 
-@splunk_appinspect.tags('splunk_appinspect', 'appapproval', 'cloud', 'manual')
+@splunk_appinspect.tags('splunk_appinspect', 'appapproval', 'cloud')
 @splunk_appinspect.cert_version(min='1.0.0')
 def check_destructive_commands(app, reporter):
-    """Check for the use of malicious commands designed to corrupt the OS or
-    Splunk instance.
-    """
+    """Check for the use of malicious shell commands in configuration files or shell scripts to
+    corrupt the OS or Splunk instance. Other scripting languages are covered by other checks."""
     # The second is to match process.call(["rm", "-rf"]) and friends
-    exclude = [".txt", ".md", ".org"]
+    exclude = [".txt", ".md", ".org", ".csv", ".rst", ".py", ".js"]
     patterns = ["rm -rf", "[\"\']rm[\"\']\s*,\s*[\"\']\-[rf]{2}[\"\']",
                 "kill\b", "halt\b"]
     matches = app.search_for_patterns(patterns, excluded_types=exclude)
@@ -105,7 +108,7 @@ def check_destructive_commands(app, reporter):
                            " Line: {}.").format(match.group(),
                                                 filepath,
                                                 line_number)
-        reporter.manual_check(reporter_output, filepath, line_number)
+        reporter.fail(reporter_output, filepath, line_number)
 
 
 @splunk_appinspect.tags('splunk_appinspect', 'manual')

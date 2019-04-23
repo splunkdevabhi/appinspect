@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """Each of these add metadata to the function they wrap. This metadata is then 
 used by the Check object that encloses it.

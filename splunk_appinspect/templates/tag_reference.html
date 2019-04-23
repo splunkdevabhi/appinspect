@@ -1,8 +1,9 @@
-<html>
+<!DOCTYPE html>
+<h1>AppInspect Tag Reference</h1>
 
-<head>
-    <!--  -->
-    <style type="text/css">
+<!-- Docs: Copy/paste the contents below this comment -->
+
+<style type="text/css">
     table {
         width: 90%;
         border-collapse: collapse;
@@ -18,36 +19,35 @@
     table.listTable th {
         border: 1px solid DarkGray;
         background-color: #ccc;
-        font-size: 14px;
+        font-size: 12px;
         padding: 10px 5px 10px 10px;
     }
-    </style>
-</head>
+</style>
 
-<body>
-    <div class="superWrapper">
-        <div class="container">
-            <h1>AppInspect Tag Reference</h1>
-            <p>This topic provides descriptions of each of the built-in Splunk AppInspect tags. AppInspect uses tags to provide a mechanism of selection and filtering for validation. Each check is tagged with a keyword that specifies what the check is relevant to. For a full list of the checks that are built into AppInspect, see <a href="/view/app-cert/SP-CAAAE3H">App certification criteria</a>.</p>
-            <em>{{ current_date }} (v{{ current_splunk_appinspect_version }})</em>
-            <table class="listTable">
-                <tbody>
-                    <tr>
-                        <th>Tag</th>
-                        <th>Description</th>
-                    </tr>
-                    {% for key, value in splunk_appinspect_tags.iteritems() %}
-                    <tr>
-                        <td>
-                            <tt>{{key}}</tt>
-                        </td>
-                        <td>{{value["description"]}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</body>
+<p>This topic provides descriptions of each of the built-in Splunk AppInspect tags. AppInspect uses tags to provide a mechanism of selection and filtering for validation. Each check is tagged with a keyword that specifies what the check is relevant to. For a full list of the checks that are built into AppInspect, see <a href="/view/app-cert/SP-CAAAE3H">App certification criteria</a>.</p>
 
-</html>
+<blockquote><strong>Note:</strong> To learn how to include and exclude tags from your a validation using the AppInspect API, see the API documentation for <a href="/view/appinspect/SP-CAAAFAS#scroll-bookmark-12"><tt>POST /v1/app/validate</tt></a> in <a href="/view/appinspect/SP-CAAAFAS">AppInspect API endpoint reference</a>.</blockquote>
+
+<br>
+
+<em>{{ current_date }} (v{{ current_splunk_appinspect_version }})</em>
+
+<br>
+<br>
+
+<table class="listTable">
+    <tbody>
+        <tr>
+            <th>Tag</th>
+            <th>Description</th>
+        </tr>
+        {% for key, value in splunk_appinspect_tags.iteritems() %}
+        <tr>
+            <td>
+                <tt>{{key}}</tt>
+            </td>
+            {{value["description"]}}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

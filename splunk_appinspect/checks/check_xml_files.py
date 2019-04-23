@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### XML file standards
@@ -34,26 +34,7 @@ def check_that_all_xml_files_are_well_formed(app, reporter):
         try:
             parse_xml(full_filepath)
         except:
-            reporter.fail("Invalid XML file: {}".format(relative_filepath))
-
-
-@splunk_appinspect.tags("splunk_appinspect", "cloud", "manual")
-@splunk_appinspect.cert_version(min="1.1.0")
-def check_for_iframe_in_xml_files(app, reporter):
-    """ Check iframe elements for compliance with Splunk Cloud security policy.
-    """
-    iframe_regex_pattern = re.compile("<iframe[^>]*>|<\/iframe>",
-                                      re.IGNORECASE | re.MULTILINE)
-    for relative_filepath, full_filepath in app.get_filepaths_of_files(types=[".xml"]):
-        with open(full_filepath, "r") as f:
-            current_file_contents = f.read()
-
-        iframe_matches = re.findall(iframe_regex_pattern,
-                                    current_file_contents)
-        if iframe_matches:
-            reporter_output = ("An iframe has been detected."
-                               " File: {}").format(relative_filepath)
-            reporter.manual_check(reporter_output, relative_filepath)
+            reporter.fail("Invalid XML file: {}".format(relative_filepath), relative_filepath)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "cloud", "manual")
@@ -88,7 +69,7 @@ def check_validate_no_embedded_javascript(app, reporter):
             total_lines_of_code_output += len(cdata_script_elements)
             reporter_output = ("Embedded javascript has been detected."
                                " Total line(s) of code found: {}."
-                               " File: {}.").format(total_lines_of_code_output,
+                               " File: {}").format(total_lines_of_code_output,
                                                     relative_filepath)
             reporter.manual_check(reporter_output, relative_filepath)
 
@@ -122,9 +103,8 @@ def check_validate_no_event_handler(app, reporter):
                                    for element
                                    in elements]
             reporter_output = ("A global event handler was detected in use."
-                               " Please check and make sure that this is a "
-                               " valid  use for it."
+                               " Please verify that this use is valid."
                                " Elements: {}"
-                               " File: {}.").format("".join(elements_as_strings),
+                               " File: {}").format("".join(elements_as_strings),
                                                     relative_filepath)
             reporter.manual_check(reporter_output, relative_filepath)

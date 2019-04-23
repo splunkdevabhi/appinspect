@@ -1,12 +1,9 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
-### Deprecated features from Splunk 6.5.
+### Deprecated features from Splunk Enterprise 6.5
 
-These features should not be supported in Splunk 6.5 and onward
-
-- [List of deprecated features](http://docs.splunk.com/Documentation/Splunk/6.5.0/ReleaseNotes/Deprecatedfeatures).
-- [Version changes](https://docs.splunk.com/Documentation/Splunk/latest/Installation/ChangesforSplunkappdevelopers).
+The following features should not be supported in Splunk 6.5 or later. For more, see <a href="http://docs.splunk.com/Documentation/Splunk/6.5.0/ReleaseNotes/Deprecatedfeatures" target="_blank">Deprecated features</a> and <a href="http://docs.splunk.com/Documentation/Splunk/latest/Installation/ChangesforSplunkappdevelopers" target="_blank">Changes for Splunk App developers</a>.
 """
 
 # Python Standard Libraries
@@ -42,7 +39,7 @@ def check_for_simple_xml_list_element(app, reporter):
         count = len(list_elements)
         if count > 0:
             reporter_output = ("{} <list> elements found File: {}".format(count, relative_filepath))
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_5", "deprecated_feature")
@@ -73,7 +70,7 @@ def check_for_simple_xml_option_element_with_deprecated_attribute_value(app, rep
         if total_options_found > 0:
             reporter_output = ("{} <option> elements contain the attribute value refresh.auto.interval "
                                " File: {}").format(total_options_found, relative_filepath)
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_5", "deprecated_feature")
@@ -105,7 +102,7 @@ def check_for_splunk_js_header_and_footer_view(app, reporter):
         match_split = match_file_and_line.rsplit(":", 1)
         match_file = match_split[0]
         match_line = match_split[1]
-        reporter_output = ("As of splunk 6.5 this functionality is deprecated and should be removed "
+        reporter_output = ("As of Splunk 6.5, this functionality is deprecated and should be removed "
                            "in future app versions. Match: {} File: {} Line: {}"
                            ).format(match_object.group(), match_file, match_line)
-        reporter.warn(reporter_output)
+        reporter.warn(reporter_output, match_file, match_line)

@@ -1,12 +1,9 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
-### Deprecated features from Splunk 6.3.
+### Deprecated features from Splunk Enterprise 6.3
 
-These features should not be supported in Splunk 6.3 and onward
-
-- [List of deprecated features](http://docs.splunk.com/Documentation/Splunk/6.3.5/ReleaseNotes/Deprecatedfeatures#Previously_deprecated_features_that_still_work).
-- [Version changes](https://docs.splunk.com/Documentation/Splunk/6.3.5/Installation/ChangesforSplunkappdevelopers).
+These following features should not be supported in Splunk 6.3 or later. For more, see <a href="http://docs.splunk.com/Documentation/Splunk/6.3.5/ReleaseNotes/Deprecatedfeatures#Previously_deprecated_features_that_still_work" target="_blank">Deprecated features</a> and <a href="http://docs.splunk.com/Documentation/Splunk/6.3.5/Installation/ChangesforSplunkappdevelopers" target="_blank">Changes for Splunk App developers</a>.
 """
 
 # Python Standard Libraries
@@ -45,7 +42,7 @@ def check_for_simple_xml_seed_element(app, reporter):
         if seed_elements:
             reporter_output = ("<seed> element detected in:"
                                " file: {}").format(relative_filepath)
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
         else:
             pass  # Do nothing, everything is fine
 
@@ -75,7 +72,7 @@ def check_for_simple_xml_searchTemplate_element(app, reporter):
         if searchTemplate:
             reporter_output = ("<searchTemplate> detected in"
                                " file: {}").format(relative_filepath)
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
         else:
             pass  # Do nothing, everything is fine
 
@@ -105,7 +102,7 @@ def check_for_simple_xml_option_element_with_name_previewResults(app, reporter):
         if option_elements:
             reporter_output = ("<option name='previewResults'> detected in"
                                " file: {}").format(relative_filepath)
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
         else:
             pass  # Do nothing, everything is fine
 
@@ -147,7 +144,7 @@ def check_for_simple_xml_chart_element_with_deprecated_option_names(app, reporte
                 reporter_output = ("A <chart> was detected with deprecated "
                                    "options in "
                                    "file: {}").format(relative_filepath)
-                reporter.fail(reporter_output)
+                reporter.fail(reporter_output, relative_filepath)
             else:
                 pass  # Do nothing, everything is fine
 
@@ -179,7 +176,7 @@ def check_for_advanced_xml_module_elements(app, reporter):
         for module_element in module_elements:
             reporter_output = ("<module> element found in"
                                " file: {}").format(relative_filepath)
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_3", "deprecated_feature", "advanced_xml")
@@ -191,10 +188,12 @@ def check_for_advanced_xml_appserver_modules_directory(app, reporter):
     # Checks to see if an appserver/modules directory exists. This is used as
     # a heuristic to determine if the Module System is being used.
     if app.directory_exists("appserver", "modules"):
+        file_path = os.path.join("appserver", "modules")
         reporter_output = ("The Advanced XML `appserver/modules` directory was "
                            " detected. Please replace Advanced XMl with Simple "
-                           " XML.")
-        reporter.fail(reporter_output)
+                           " XML. File: {}"
+                           ).format(file_path)
+        reporter.fail(reporter_output, file_path)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_3", "deprecated_feature", "advanced_xml")
@@ -207,12 +206,16 @@ def check_for_advanced_xml_web_conf_endpoints(app, reporter):
     # used as a heuristic to determine if the Module System is being used.
     if app.file_exists("default", "web.conf"):
         web_conf = app.web_conf()
+        file_path = os.path.join("default", "web.conf")
         for section in web_conf.sections():
             if section.name.startswith("endpoint:"):
                 reporter_output = ("Deprecated Module System endpoint found in"
                                    " web.conf. Please remove this stanza: [{}]."
-                                   " File: default/web.conf".format(section.name))
-                reporter.fail(reporter_output)
+                                   " File: {}, Line: {}."
+                                   ).format(section.name,
+                                            file_path,
+                                            section.lineno)
+                reporter.fail(reporter_output, file_path, section.lineno)
     else:
         reporter_output = "No web.conf file exists."
         reporter.not_applicable(reporter_output)
@@ -263,7 +266,7 @@ def check_for_advanced_xml_view_element(app, reporter):
         segs = path.split(os.sep)
         if all((s in segs for s in ignore_segments)):
             reporter_output = ("An XML file was detected that contains Advanced"
-                               " XML <view> types.  This has been ignored"
+                               " XML <view> types.  This file has been ignored."
                                " File: {}").format(relative_filepath)
             reporter.not_applicable(reporter_output)
             continue
@@ -282,11 +285,11 @@ def check_for_advanced_xml_view_element(app, reporter):
                 for l in lines:
                     line_number = l + 1
 
-                    reporter_output = ("An XML file was detected that contains Advanced"
-                                       " XML <view> types."
+                    reporter_output = ("An XML file that contains Advanced"
+                                       " XML <view> types. was detected."
                                        " File: {}"
                                        " Line: {}").format(relative_filepath, line_number)
-                    reporter.fail(reporter_output)
+                    reporter.fail(reporter_output, relative_filepath, line_number)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_3", "deprecated_feature", "django_bindings")
@@ -296,7 +299,9 @@ def check_for_django_bindings(app, reporter):
     # Checks to see that the django directory exist. If it does, then
     # django bindings are being used.
     if app.directory_exists("django"):
-        reporter_output = ("The `django` directory was detected.")
-        reporter.fail(reporter_output)
+        file_path = "django"
+        reporter_output = ("The `django` directory was detected. File: {}"
+                           ).format(file_path)
+        reporter.fail(reporter_output, file_path)
     else:
         pass  # Do nothing, everything is fine

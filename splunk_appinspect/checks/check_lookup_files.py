@@ -1,10 +1,9 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Lookup file standards
 
-Lookups add fields from an external source to events based on the values of
-fields that are already present in those events.
+Lookups add fields from an external source to events based on the values of fields that are already present in those events.
 """
 
 # Python Standard Library
@@ -38,10 +37,11 @@ def check_lookup_csv_is_valid(app, reporter):
             is_valid, rationale = LookupHelper.is_valid_csv(full_file_path)
             if not is_valid:
                 reporter.fail("This .csv lookup is not formatted as valid csv."
-                              " Details: {} File: {}".format(rationale, app_file_path))
+                              " Details: {} File: {}".format(rationale, app_file_path), app_file_path)
         except Exception as err:
             logger.warn("Error validating lookup. File: {}. Error: {}"
                         .format(full_file_path, err))
             reporter.fail("Error opening and validating lookup. Please"
-                          " investigate/remove this lookup. File: {}"
-                          .format(app_file_path))
+                          " investigate this lookup and remove it if it is not" 
+                          " formatted as valid CSV. File: {}"
+                          .format(app_file_path), app_file_path)

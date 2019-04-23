@@ -67,6 +67,12 @@ def output_summary(summary, summary_header=None):
     click.echo("-" * 19)
     click.echo("{:>14}: {:>2}".format("Total", str(total)))
 
+    click.echo()
+
+    click.echo(click.style("Please note that more issues could be found out later during the optional manual review process.",
+        **{"fg": "yellow"}
+        ))
+
 
 def print_result_records(application_validation_report,
                          max_messages=None,

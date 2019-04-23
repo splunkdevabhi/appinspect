@@ -1,18 +1,19 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import os
 import re
-from distutils.util import strtobool
 # Custom Libraries
 import saved_searches_configuration_file
+from splunk import normalizeBoolean
 
 
 class SavedSearch:
     """Represents a saved search."""
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, section):
+        self.name = section.name
+        self.lineno = section.lineno
 
         self.args = {}
         self.cron_schedule = None
@@ -43,7 +44,7 @@ class SavedSearch:
     
     @property
     def is_disabled(self):
-        return strtobool(self.disabled)
+        return normalizeBoolean(self.disabled)
 
     @dispatch_latest_time.setter
     def dispatch_latest_time(self, dispatch_latest_time):
@@ -82,12 +83,12 @@ class SavedSearches:
 
         search_list = []
 
-        for section in self.get_configuration_file().section_names():
+        for section in self.get_configuration_file().sections():
 
             search = SavedSearch(section)
 
-            for key, value in self.get_configuration_file().items(section):
-                search.args[key] = [value]
+            for key, value, lineno in self.get_configuration_file().items(section.name):
+                search.args[key.lower()] = (value, lineno)
 
                 if key.lower() == "cron_schedule":
                     search.cron_schedule = value

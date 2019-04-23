@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Python file standards
@@ -42,7 +42,7 @@ def check_for_compiled_python(app, reporter):
         current_file_relative_path = os.path.join(dir, file)
         reporter_output = ("A Compiled Python file was detected. File: {}"
                            ).format(current_file_relative_path)
-        reporter.fail(reporter_output)
+        reporter.fail(reporter_output, current_file_relative_path)
 
 
 @splunk_appinspect.tags("cloud", "manual")
@@ -71,7 +71,7 @@ def check_for_possible_threading(app, reporter):
             reporter_output = ("The following line will be inspected during code review."
                                " Match: {}"
                                " File: {}"
-                               " Line Number: {}"
+                               " Line: {}"
                                ).format(match.group(), filename, line_number)
             reporter.manual_check(reporter_output, filename, line_number)
     else:
@@ -107,7 +107,7 @@ def check_built_in_import_function(app, reporter):
                                " Third-Party libraries are exempt from this"
                                " requirement."
                                " File: {}"
-                               " Line Number: {}").format(filepath, line_number)
+                               " Line: {}").format(filepath, line_number)
             file_dirname = os.path.dirname(filepath)
             # Check for dynamic imports that could be exploited for command injection
             reporter.manual_check(reporter_output, filepath, line_number)

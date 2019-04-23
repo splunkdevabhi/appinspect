@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 A naive profanity scanner.  It flags any words contaned in banned_wordlist.txt, optionally with suffixes 'er' or 'ing'.
@@ -8,8 +8,10 @@ A naive profanity scanner.  It flags any words contaned in banned_wordlist.txt, 
 import subprocess
 import re
 import os
+import platform
 # Third-Party Libraries
-# N/A
+if not platform.system() == "Windows":
+    import magic
 # Custom Libraries
 # N/A
 
@@ -42,7 +44,8 @@ def word_is_profane(word):
 
 def scan_file(filename):
     """
-    Tokenize into single words, and match each against our banned word list
+    Tokenize into single words, and match each against our banned word list.
+    Notice: This method should only be used in Unix environment.
     """
     results = set()
     if get_mime_type(filename).find('text') == -1:
@@ -62,8 +65,9 @@ def scan_file(filename):
 def get_mime_type(file):
     """
     Call out to the OS to determine whether this file is text or binary (we
-    don't want to scan binary files)
+    don't want to scan binary files).
+    Notice: This method should only be used in Unix environment.
     """
-    output = subprocess.check_output(["file", "-b", "--mime-type", file])
+    output = magic.from_file(file, mime=True)
     parts = output.split(';')
     return parts[0]

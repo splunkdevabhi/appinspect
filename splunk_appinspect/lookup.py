@@ -1,4 +1,4 @@
-# Copyright 2017 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import csv
@@ -7,10 +7,6 @@ import csv
 # From http://docs.splunk.com/Documentation/SplunkCloud/6.6.0/Knowledge/ConfigureCSVlookups:
 LOOKUP_HEADER_CHAR_LIMIT = 4096
 LOOKUP_EMPTY_MESSAGE = "Lookups should not be empty. Please remove this lookup."
-LOOKUP_LESS_THAN_TWO_COLUMNS_MESSAGE = (
-    "Lookups should contain at least two columns. Header found to contain {}"
-    " columns. Please edit/remove this lookup."
-)
 LOOKUP_HEADER_CHAR_LIMIT_MESSAGE = (
     "Lookups headers should contain no more than {} characters. Please"
     " edit/remove this lookup.".format(LOOKUP_HEADER_CHAR_LIMIT)
@@ -20,8 +16,8 @@ LOOKUP_MAC_LINE_ENDINGS_MESSAGE = (
     " line endings. Please edit/remove this lookup."
 )
 LOOKUP_COLUMN_MISMATCH_MESSAGE = (
-    "The number of columns in row {} (={} columns) does not match the number of"
-    " columns in the csv's header (={} columns). The header is considered row"
+    "The number of columns in row {} ({} columns) does not match the number of"
+    " columns in the csv's header ({} columns). The header is considered row"
     " 1. Please edit/remove this lookup."
 )
 LOOKUP_NON_UTF8_MESSAGE = (
@@ -65,8 +61,6 @@ class LookupHelper(object):
                 return False, LOOKUP_EMPTY_MESSAGE
             if "\r" in file_contents and "\r\n" not in file_contents:
                 return False, LOOKUP_MAC_LINE_ENDINGS_MESSAGE
-            if "," not in file_contents:
-                return False, LOOKUP_LESS_THAN_TWO_COLUMNS_MESSAGE.format(1)
             try:
                 file_contents.decode("utf8")
             except UnicodeDecodeError:
@@ -75,14 +69,18 @@ class LookupHelper(object):
             lookup_header = csvfile.readline()
             if len(lookup_header) > LOOKUP_HEADER_CHAR_LIMIT:
                 return False, LOOKUP_HEADER_CHAR_LIMIT_MESSAGE
-            dialect = csv.Sniffer().sniff(lookup_header)
+
             csvfile.seek(0)  # point back to beginning of file
-            csv_data = list(csv.reader(csvfile, dialect))
+            try:
+                dialect = csv.Sniffer().sniff(lookup_header, [',', '\t', ';', ' ', ':'])
+            except csv.Error as e:
+                if 'Could not determine delimiter' in e.message:
+                    dialect = None
+
+            csv_data = list(csv.reader(csvfile, dialect=dialect))
             if len(csv_data) == 0:
                 return False, LOOKUP_EMPTY_MESSAGE
             header_columns = len(csv_data[0])
-            if header_columns < 2:
-                return False, LOOKUP_LESS_THAN_TWO_COLUMNS_MESSAGE.format(header_columns)
             # If each row of file has same number of columns, call it a valid
             # csv - some level of checking is needed as csv.reader() will
             # process just about anything without issue

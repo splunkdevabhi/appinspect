@@ -1,69 +1,111 @@
-<html>
+<!DOCTYPE html>
+<h1>App certification criteria</h1>
 
-<head>
-    <!--  -->
-    <style type="text/css">
-    table {
-        width: 90%;
-        border-collapse: collapse;
-        border: 1px solid DarkGray;
-    }
+<!-- Docs: Copy/paste the contents below this comment -->
 
-    table.listTable td {
-        font-size: 12px;
-        padding: 10px 5px 10px 10px;
-        border: 1px solid DarkGray;
-    }
+<style type="text/css">
+  table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid DarkGray;
+  }
+  table#narrow {
+    table-layout: fixed;
+    width: 97%;
+    border-collapse: collapse;
+    border: 1px solid DarkGray;
+  }
+  th:nth-child(1) {
+    width: 26%;
+  }
+  th:nth-child(2) {
+    width: 11%;
+    text-align: center;
+  }
+  th:nth-child(3) {
+    width: 9%;
+    text-align: center;
+  }
+  th:nth-child(4) {
+    width: 54%;
+  }
+  th {
+    border: 1px solid DarkGray;
+    word-wrap: break-word;
+    text-align: left;
+    background-color: #ccc;
+    font-size: 12px;
+    padding: 5px 5px 5px 5px ;
+  }
+  td:nth-child(2) {
+    text-align: center;
+  }
+  td:nth-child(3) {
+    text-align: center;
+  }
+  td {
+    font-size: 12px;
+    word-wrap: break-word;
+    padding: 5px 5px 5px 5px ;
+    border: 1px solid DarkGray;
+  }
+</style>
 
-    table.listTable th {
-        border: 1px solid DarkGray;
-        background-color: #ccc;
-        font-size: 14px;
-        padding: 10px 5px 10px 10px;
-    }
-    </style>
-</head>
 
-<body>
-    <div class="superWrapper">
-        <div class="container">
-            <h1>Application Certification Criteria</h1>
-            <h2><a name="checklist"></a>Checklist for submission</h2>
-            <em>{{ current_date }} (v{{ current_splunk_appinspect_version }})</em>
+<p>When you submit your app or add-on for certification, it is evaluated against a set of criteria for use in Splunk platform deployments.</p>
 
-            {% for group in splunk_appinspect_core_groups %}
-                {{ group.doc_html() }}
-                <table class="listTable">
-                    <tbody>
-                        <tr>
-                            <th>Check Name</th>
 
-                            {% for certfication_area in splunk_appinspect_certification_areas %}
-                                <th>{{ certfication_area }}</th>
-                            {% endfor %}
-                            <th>Description</th>
-                        </tr>
+<blockquote><strong>Note</strong>&nbsp;&nbsp;The Splunk AppInspect tool and API also use this list of checks. For more, see <a href="/view/appinspect/SP-CAAAE9U">Splunk AppInspect</a>.</blockquote>
 
-                        {% for check in group.checks() %}
-                            <tr>
-                                <td>{{ check.name }}</td>
-                                {% for certfication_area in splunk_appinspect_certification_areas %}
-                                    {% if check.has_tag([certfication_area]) %}
-                                        <td align="center">x</td>
-                                    {% else %}
-                                        <td></td>
-                                    {% endif %}
-                                {% endfor %}
-                                <td>{{ check.doc() }}</td>
-                            </tr>
-                        {% endfor %}
+<br>
 
-                    </tbody>
-                </table>
-                <br/>
-            {% endfor %}
-        </div>
-    </div>
-</body>
+<!-- ******************************************************** -->
+<h2><a name="checklist"></a>Checklist for submission</h2>
+<!-- ******************************************************** -->
 
-</html>
+<em>{{ current_date }} (v{{ current_splunk_appinspect_version }})</em>
+
+<br>
+
+<ul>
+{% for group in splunk_appinspect_core_groups -%}
+  <li><a href="/view/SP-CAAAE3H#{{ group.name }}">{{ group.doc_name_human_readable() }}</a></li>
+{% endfor -%}
+</ul>
+
+<br>
+
+{% for group in splunk_appinspect_core_groups %}
+<!-- ******************************************************** -->
+{{ group.doc_html() }}
+<!-- ******************************************************** -->
+<table>
+    <tr>
+        <th>Check Name</th>
+    {% for certfication_area in splunk_appinspect_certification_areas %}
+        {%- if certfication_area == "splunk_appinspect" -%}
+            {%- set certfication_area = "splunk_<br>appinspect" -%}
+        {%- endif -%}
+        <th>{{ certfication_area }}</th>
+    {%- endfor -%}
+        <th>Description</th>
+    </tr>
+    {% for check in group.checks() %}
+    <tr>
+        <td>{{ check.name }}</td>
+        {%- for certfication_area in splunk_appinspect_certification_areas -%}
+            {%- if check.has_tag([certfication_area]) %}
+        <td>x</td>
+            {%- else %}
+        <td></td>
+            {%- endif -%}
+        {%- endfor %}
+        <td>{{ check.doc() }}</td>
+    </tr>
+    {% endfor -%}
+</table>
+
+<br/>
+
+{% endfor -%}

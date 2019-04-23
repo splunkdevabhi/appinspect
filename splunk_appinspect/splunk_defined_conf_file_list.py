@@ -78,7 +78,7 @@ LATEST_CONFS = set([
     'crawl.conf',
     'datamodels.conf',
     'datatypesbnf.conf',
-    'defauilt.meta.conf',
+    'default.meta.conf',
     'default-mode.conf',
     'deployment.conf',
     'deploymentclient.conf',

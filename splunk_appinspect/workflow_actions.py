@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import os
@@ -12,9 +12,12 @@ logger = logging.getLogger(__name__)
 class WorkFlowAction:
     """Represents a custom workflow action."""
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, section, items):
+        self.name = section.name
+        self.lineno = section.lineno
         self.args = {}
+        for key, value, lineno in items:
+            self.args[key] = (value, lineno)
 
 
 class WorkFlowActions:
@@ -33,12 +36,9 @@ class WorkFlowActions:
                                    config_file=workflow_actions_configuration_file.WorkflowActionsConfigurationFile())
 
     def get_workflow_actions(self):
-        actions = []
 
-        for section in self.get_configuration_file().section_names():
-            action = WorkFlowAction(section)
-
-            for key, value in self.get_configuration_file().items(section):
-                action.args[key] = [value]
+        for section in self.get_configuration_file().sections():
+            items = self.get_configuration_file().items(section.name)
+            action = WorkFlowAction(section, items)
 
             yield action

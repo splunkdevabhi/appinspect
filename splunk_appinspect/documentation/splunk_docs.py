@@ -1,4 +1,4 @@
-# Copyright 2017 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 # Third-Party Libraries

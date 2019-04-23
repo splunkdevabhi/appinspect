@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import os
@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 class RestHandler(object):
     """ Represents a rest handler. """
 
-    def __init__(self, name, handler_file_name="", handler_module="", handler_module_file_name="", handler_actions="", hander_type=""):
-        self.name = name
+    def __init__(self, section, handler_file_name="", handler_module="", handler_module_file_name="", handler_actions="", hander_type=""):
+        self.name = section.name
+        self.lineno = section.lineno
         self.handler_file_name = handler_file_name
         self.handler_module = handler_module
         self.handler_module_file_name = handler_module_file_name
@@ -54,16 +55,18 @@ class RestHandler(object):
 class RestMap(object):
     """ Represents a restmap.conf file. """
 
-    def __init__(self, app):
+    def __init__(self, app, directory='default'):
         self.app = app
-        self.restmap_conf_file_path = self.app.get_filename('default',
+        self.directory = directory
+        self.restmap_conf_file_path = self.app.get_filename(directory,
                                                             'restmap.conf')
 
     def configuration_file_exists(self):
-        return self.app.file_exists('default', 'restmap.conf')
+        return self.app.file_exists(self.directory, 'restmap.conf')
 
     def get_configuration_file(self):
         return self.app.get_config('restmap.conf',
+                                   dir=self.directory,
                                    config_file=rest_map_configuration_file.RestMapConfigurationFile())
 
     def global_handler_file(self):
@@ -74,7 +77,7 @@ class RestMap(object):
         """
         for section in self.get_configuration_file().section_names():
             if section == "global":
-                for key, value in self.get_configuration_file().items(section):
+                for key, value, lineno in self.get_configuration_file().items(section):
                     if key.lower() == "pythonHandlerPath":
                         file_path = os.path.join(
                             self.app.app_dir, "bin/", value)
@@ -86,14 +89,14 @@ class RestMap(object):
     def handlers(self):
         handler_list = []
 
-        for section in self.get_configuration_file().section_names():
+        for section in self.get_configuration_file().sections():
 
             # Only check sections that are "script" or "admin_external"
-            if "script" in section or "admin_external" in section:
+            if "script" in section.name or "admin_external" in section.name:
 
                 handler = RestHandler(section, self.app.app_dir)
 
-                for key, value in self.get_configuration_file().items(section):
+                for key, value, lineno in self.get_configuration_file().items(section.name):
 
                     # From spec file
                     # script=<path to a script executable>
@@ -102,11 +105,11 @@ class RestMap(object):
                     # rarely used.  Do not use this unless you know what you
                     # are doing.
 
-                    if "script" in section and key.lower() == "script":
+                    if "script" in section.name and key.lower() == "script":
                         handler.handler_file_name = os.path.join(
                             self.app.app_dir, "bin/", value)
 
-                    if "script" in section and key.lower() == "handler":
+                    if "script" in section.name and key.lower() == "handler":
                         handler.handler_file_name = os.path.join(
                             self.app.app_dir, "bin/", value)
 
@@ -118,11 +121,11 @@ class RestMap(object):
                             self.app.app_dir, "bin/", path)
                         handler.handler_module = value
 
-                    if "admin_external" in section and key.lower() == "handlerfile":
+                    if "admin_external" in section.name and key.lower() == "handlerfile":
                         handler.handler_file_name = os.path.join(
                             self.app.app_dir, "bin/", value)
 
-                    if "admin_external" in section and key.lower() == "handlertype":
+                    if "admin_external" in section.name and key.lower() == "handlertype":
                         handler.handler_type = value
 
                 handler_list.append(handler)

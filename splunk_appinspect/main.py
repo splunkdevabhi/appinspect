@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """The main splunk-appinspect command line entry point."""
 
@@ -217,9 +217,6 @@ def documentation(documentation_types, included_tags, excluded_tags, custom_chec
         # Print to file
         else:
             with open(output_file, 'a') as file:
-                file.write("\n<!--                      -->\n")
-                file.write("<!-- HTML CRITERA CONTENT -->\n")
-                file.write("<!--                      -->\n")
                 file.write(html_markup_criteria)
 
     if TAG_REFERENCE_DOCUMENTATION_TYPE in documentation_types:
@@ -233,9 +230,6 @@ def documentation(documentation_types, included_tags, excluded_tags, custom_chec
         # Print to file
         else:
             with open(output_file, 'a') as file:
-                file.write("\n<!--                      -->\n")
-                file.write("<!-- HTML TAG REFERENCE CONTENT -->\n")
-                file.write("<!--                      -->\n")
                 file.write(html_markup_tag_reference)
 
     # This is just the error catching logic to call out invalid tags provided
@@ -316,7 +310,7 @@ def report(list_type, included_tags, excluded_tags, custom_checks_dir):
             click.echo(check_tag_output)
             click.echo("\n")
 
-    def print_groups(groups_iterator, list_type, included_tags=[], excluded_tags=[], custom_checks_dir=None):
+    def print_groups(groups_iterator, list_type, custom_checks_dir=None):
         if not list(groups_iterator):
             return
         for group in groups_iterator:
@@ -346,7 +340,7 @@ def report(list_type, included_tags, excluded_tags, custom_checks_dir):
     elif GROUPS_LIST_TYPE in list_type:
         click.echo(create_header("All Groups"))
 
-    print_groups(standard_groups_iterator, list_type, included_tags, excluded_tags)
+    print_groups(standard_groups_iterator, list_type)
 
     # Print Custom Checks here
     if (CHECKS_LIST_TYPE in list_type) and (custom_checks_dir is not None):

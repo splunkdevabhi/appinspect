@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Documentation standards
@@ -13,24 +13,11 @@ import re
 import langdetect
 # Custom Libraries
 import splunk_appinspect
+from splunk_appinspect.splunk import normalizeBoolean
+from splunk_appinspect.app_util import find_readmes
 
 report_display_order = 50
 logger = logging.getLogger(__name__)
-
-def find_readmes(app):
-    # This is surprisingly complex- an app may have a README file that's
-    # documentation. It may also have a README directory that contains
-    # conf files.  We could potentially also have multiple readme files,
-    # for example for different languages, installation, etc.
-
-    # Heuristic: find all plain files in the root directory that
-    # match start with "readme", case-insensitive
-    candidates = [f
-                  for f in os.listdir(app.app_dir)
-                  if(os.path.isfile(os.path.join(app.app_dir, f)) and
-                     re.match(r'(?i)^readme', f))]
-    return candidates
-
 
 @splunk_appinspect.tags('splunk_appinspect', 'appapproval')
 @splunk_appinspect.cert_version(min='1.0.0')
@@ -47,16 +34,23 @@ def check_basic_readme(app, reporter):
     else:
         found_readme_with_content = False
         for readme in readmes:
+            full_file_path = os.path.join(app.app_dir, readme)
             try:
-                with codecs.open(os.path.join(app.app_dir, readme), encoding='utf-8') as file:
+                with codecs.open(full_file_path, encoding='utf-8', errors='ignore') as file:
                     contents = file.read()
                     if len(contents.strip()) > 0:
                         found_readme_with_content = True
                         break
             except:
-                pass
-        reporter_output = ("README file(s) found but appear to be empty.")
-        reporter.assert_fail(found_readme_with_content, reporter_output)
+                # when file encoding is not utf-8, use filesize to determine if a file is empty
+                # could not skip space characters in this check
+                if os.stat(full_file_path).st_size > 0:
+                    found_readme_with_content = True
+                    break
+        if not found_readme_with_content:
+            reporter_output = ("README file(s) found but appear to be empty. File: {}"
+                               ).format(readme)
+            reporter.fail(reporter_output, readme)
 
 @splunk_appinspect.tags('splunk_appinspect', 'appapproval', 'manual')
 @splunk_appinspect.cert_version(min='1.0.0')
@@ -65,21 +59,23 @@ def check_documentation_language(app, reporter):
     """Check that documentation is in English."""
     readmes = find_readmes(app)
     if len(readmes) == 0:
-        reporter.not_applicable("README not found")
+        reporter.not_applicable("README not found.")
         return
 
     for readme in readmes:
         try:
-            with codecs.open(os.path.join(app.app_dir, readme), encoding='utf-8') as file:
+            full_file_path = os.path.join(app.app_dir, readme)
+            with codecs.open(full_file_path, encoding='utf-8', errors='ignore') as file:
                 contents = file.read()
                 if len(contents.strip()) == 0:
-                    reporter.not_applicable("README file is empty")
+                    reporter.not_applicable("README file is empty.")
                     continue
                 lang = langdetect.detect(contents)
-                reporter_output = ('Language for README appears to be in "{}",'
-                                   ' not "en". Please verify this manually.'
-                                   ' File: {}').format(lang, readme)
-                reporter.assert_manual_check(lang == 'en', reporter_output)
+                if lang != 'en':
+                    reporter_output = ('Language for README appears to be in "{}",'
+                                       ' not "en". Please verify this manually.'
+                                       ' File: {}').format(lang, readme)
+                    reporter.manual_check(reporter_output, readme)
         except Exception:
             reporter_output = ("Could not detect language of README file."
                                " File: {}".format(readme))
@@ -121,7 +117,7 @@ def check_search_acceleration(app, reporter):
     # TODO: Only warn if searches are accelerated or summary indexes are built.
     if app.file_exists('default', 'savedsearches.conf'):
         reporter.manual_check(
-            "App has a savedsearches.conf, verify that it is documented.")
+            "App has a savedsearches.conf. Please verify that this file is documented.")
     else:
         reporter.not_applicable("No savedsearches.conf file exists.")
 
@@ -146,7 +142,7 @@ def check_custom_commands(app, reporter):
 def check_dependencies(app, reporter):
     """Check that prerequisites of the app are explained in the app's
     documentation. All prerequisites must be either
-    packaged with your app, or be available on Splunkbase as a certified app.
+    packaged with your app, or be available on Splunkbase.
     """
     reporter.manual_check("Documentation will be read during code review.")
 
@@ -159,9 +155,31 @@ def check_archived_files(app, reporter):
     archived_files = list(app.iterate_files(types=[".gz", ".tgz", ".spl", ".zip", ".tar"]))
     if archived_files:
         for directory, file, ext in archived_files:
-            reporter_output = ("Found archived file: {}. Please make sure any archived files in the app are documented."
+            reporter_output = ("Found archived {}. Please make sure any archived files in the app are documented."
                                ).format(file)
-            reporter.manual_check(reporter_output, os.path.join(directory, file))
+            reporter.manual_check(reporter_output)
     else:
         reporter_output = "No archived files found in app."
         reporter.not_applicable(reporter_output)
+
+@splunk_appinspect.tags("splunk_appinspect", "appapproval", "manual")
+@splunk_appinspect.cert_version(min="1.6.0")
+def check_outputs_documented(app, reporter):
+    """Check that forwarding enabled in 'outputs.conf' is explained in the
+    app's documentation.
+    """
+    if app.file_exists("default", "outputs.conf"):
+        outputs_conf = app.outputs_conf()
+        is_enabled_or_empty = True
+        for section in outputs_conf.section_names():
+            if outputs_conf.has_option(section, "disabled"):
+                is_disabled = normalizeBoolean(outputs_conf.get(section, "disabled"))
+                if is_disabled:
+                    is_enabled_or_empty = False
+                else:
+                    is_enabled_or_empty = True
+        if is_enabled_or_empty:
+            reporter.manual_check(
+                "Documentation will be read during code review.")
+    else:
+        reporter.not_applicable("No outputs.conf file exists.")

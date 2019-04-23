@@ -1,28 +1,12 @@
+# Copyright 2018 Splunk Inc. All rights reserved.
+
 """
 ### ITSI module file and folder structure verification
 
 All the ITSI modules should follow the following file structure:
-splunk_home/etc/apps/[module folder]
-    - appserver[d]
-        - static
-    - default[d]
-        - data[d]
-            - models[d]
-            - ui[d]
-                - panels[d]
-                - views[d]
-        - app.conf[f]
-        - deep_dive_drilldowns.conf[f]
-        - inputs.conf[f]
-        - itsi_kpi_base_search.conf[f]
-        - itsi_kpi_template.conf[f]
-        - itsi_module_viz.conf[f]
-        - itsi_service_template.conf[f]
-        - savedsearches.conf[f]
-    - metadata[d]
-        - default.meta[f]
+**splunk_home/etc/apps/*module_folder* - appserver[d] - static - default[d] - data[d] - models[d] - ui[d] - panels[d] - views[d] - app.conf[f] - deep_dive_drilldowns.conf[f] - inputs.conf[f] - itsi_kpi_base_search.conf[f] - itsi_kpi_template.conf[f] - itsi_module_viz.conf[f] - itsi_service_template.conf[f] - savedsearches.conf[f] - metadata[d] - default.meta[f]**
 
-The test files should not be shipped with the package. So etc/apps/[module folder]/test should not exist.
+Test files should not be included with the package. For example, a directory such as **/etc/apps/*module_folder*/test** should not exist.
 """
 
 # Python Standard Libraries

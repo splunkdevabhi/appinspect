@@ -1,19 +1,15 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Limits.conf file standards
 
-Ensure that `default/limits.conf` is omitted.
+Ensure that **/default/limits.conf** file is omitted.
 
-Including `limits.conf` within an app changes the limits that are placed on the
-system for hardware use and memory consumption. This should be handled by Splunk
-Administrators and not Splunk App Developers, thus including a `limits.conf`
-file is prohibited.
-
-- [limits.conf](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Limitsconf)
+When included in the app, the **limits.conf** file changes the limits that are placed on the system for hardware use and memory consumption, which is a task that should be handled by Splunk administrators and not by Splunk app developers. For more, see <a href="http://docs.splunk.com/Documentation/Splunk/latest/Admin/Limitsconf" target="_blank">limits.conf</a>.
 """
 
 # Python Standard Library
+import os
 import logging
 # Custom Libraries
 import splunk_appinspect
@@ -25,8 +21,9 @@ import splunk_appinspect
 def check_limits_conf(app, reporter):
     """Check that `default/limits.conf` has not been included."""
     if app.file_exists("default", "limits.conf"):
+        file_path = os.path.join("default", "limits.conf")
         reporter_output = ("Changes to 'limits.conf' are not allowed. Hardware"
                            " and memory limits should be left to Splunk"
-                           " Administrators. Please remove this file:"
-                           " default/limits.conf.")
-        reporter.fail(reporter_output)
+                           " Administrators. Please remove this file."
+                           " File: {}").format(file_path)
+        reporter.fail(reporter_output, file_path)

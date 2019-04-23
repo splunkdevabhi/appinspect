@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import os
@@ -41,6 +41,7 @@ class CustomVisualizations():
                                                                                            description_option,
                                                                                            label_option,
                                                                                            search_fragment_option,
+                                                                                           stanza_section.lineno,
                                                                                            allow_user_selection=allow_user_selection_option,
                                                                                            default_height=default_height_option,
                                                                                            disabled=disabled_option)
@@ -94,12 +95,14 @@ class CustomVisualization():
                  description,
                  label,
                  search_fragment,
+                 lineno,
                  allow_user_selection=None,
                  default_height=None,
                  disabled=None):
 
         self.app = app
         self.name = name
+        self.lineno = lineno
         self.allow_user_selection = allow_user_selection
         self.default_height = default_height
         self.description = description

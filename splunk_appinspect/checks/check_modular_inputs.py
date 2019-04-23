@@ -1,17 +1,14 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### Modular inputs structure and standards
 
-[Modular Inputs](https://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModInputsIntro)
- are configured via an
-[inputs.conf.spec](https://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModInputsSpec)
- file located at `README/inputs.conf.spec`.
-[How to create a Modular Input](https://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModInputsBasicExample#Basic_implementation_requirements)
+Modular inputs are configured in an **inputs.conf.spec** file located in the **/README** directory of the app. For more, see <a href="http://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModInputsIntro" target="_blank">Modular inputs overview</a>, <a href="http://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModInputsSpec" target="_blank">Modular inputs configuration</a>, and <a href="http://docs.splunk.com/Documentation/Splunk/latest/AdvancedDev/ModInputsBasicExample#Basic_implementation_requirements" target="_blank">Modular inputs basic example</a>.
 """
 
 # Python Standard Library
 import logging
+import os
 # Custom Modules
 import splunk_appinspect
 
@@ -32,7 +29,8 @@ def check_inputs_conf(app, reporter):
     if modular_inputs.has_specification_file():
         pass
     else:
-        reporter_output = ("No `{}` file exists.").format(modular_inputs.specification_filename)
+        reporter_output = ("No `{}` file exists. Please check that a valid" 
+        " `inputs.conf.spec` file is located in the `README/`directory.").format(modular_inputs.specification_filename)
         reporter.not_applicable(reporter_output)
 
 
@@ -43,14 +41,17 @@ def check_inputs_conf_spec_has_stanzas(app, reporter):
     """Check that README/inputs.conf.spec contains stanzas."""
     modular_inputs = app.get_modular_inputs()
     if modular_inputs.has_specification_file():
+        file_path = os.path.join(modular_inputs.specification_directory_path,
+                                 modular_inputs.specification_filename)
 
         inputs_specification_file = modular_inputs.get_specification_file()
         inputs_specification_file_stanzas_count = len(list(inputs_specification_file.sections()))
         if inputs_specification_file_stanzas_count == 0:
             reporter_output = ("The inputs.conf.spec {} does not specify any "
-                               "stanzas."
-                               ).format(modular_inputs.get_specification_app_filepath)
-            reporter.fail(reporter_output)
+                               "stanzas. File: {}"
+                               ).format(modular_inputs.get_specification_app_filepath,
+                                        file_path)
+            reporter.fail(reporter_output, file_path)
         else:
             pass  # Success - stanzas were found
     else:
@@ -65,11 +66,17 @@ def check_inputs_conf_spec_stanzas_have_properties(app, reporter):
     modular_inputs = app.get_modular_inputs()
     if modular_inputs.has_specification_file():
         if modular_inputs.has_modular_inputs():
+            file_path = os.path.join(modular_inputs.specification_directory_path,
+                                     modular_inputs.specification_filename)
             for modular_input in modular_inputs.get_modular_inputs():
                 if not modular_input.args_exist():
-                    reporter_output = ("The stanza [{}] does not include any args."
-                                       ).format(modular_input.name)
-                    reporter.fail(reporter_output)
+                    lineno = modular_input.lineno
+                    reporter_output = ("The stanza [{}] does not include any args. "
+                                       "File: {}, Line: {}."
+                                       ).format(modular_input.name,
+                                                file_path,
+                                                lineno)
+                    reporter.fail(reporter_output, file_path, lineno)
                 else:
                     pass  # SUCCESS - The modular input has arguments
         else:
@@ -87,17 +94,19 @@ def check_inputs_conf_spec_has_no_duplicate_stanzas(app, reporter):
     modular_inputs = app.get_modular_inputs()
     if modular_inputs.has_specification_file():
         inputs_specification_file = modular_inputs.get_specification_file()
+        file_path = os.path.join(modular_inputs.specification_directory_path,
+                                 modular_inputs.specification_filename)
 
         for error, line_number, section, in inputs_specification_file.errors:
             if error.startswith("Duplicate stanza"):
                 reporter_output = ("{}"
-                                   " File: `{}`"
+                                   " File: {}"
                                    " Stanza: {}"
-                                   " Line Number: {}").format(error,
-                                                              modular_inputs.specification_filename,
-                                                              section,
-                                                              line_number)
-                reporter.warn(reporter_output)
+                                   " Line: {}").format(error,
+                                                       file_path,
+                                                       section,
+                                                       line_number)
+                reporter.warn(reporter_output, file_path, line_number)
     else:
         reporter_output = ("No `{}` was detected."
                            ).format(modular_inputs.specification_filename)
@@ -111,17 +120,19 @@ def check_inputs_conf_spec_has_no_duplicate_properties(app, reporter):
     modular_inputs = app.get_modular_inputs()
     if modular_inputs.has_specification_file():
         inputs_specification_file = modular_inputs.get_specification_file()
+        file_path = os.path.join(modular_inputs.specification_directory_path,
+                                 modular_inputs.specification_filename)
 
         for error, line_number, section, in inputs_specification_file.errors:
             if error.startswith("Repeat item name"):
                 reporter_output = ("{}"
-                                   " File: `{}`"
+                                   " File: {}"
                                    " Stanza: {}"
-                                   " Line Number: {}").format(error,
-                                                              modular_inputs.specification_filename,
-                                                              section,
-                                                              line_number)
-                reporter.warn(reporter_output)
+                                   " Line: {}").format(error,
+                                                       file_path,
+                                                       section,
+                                                       line_number)
+                reporter.warn(reporter_output, file_path, line_number)
     else:
         reporter_output = ("No `{}` was detected."
                            ).format(modular_inputs.specification_filename)
@@ -139,13 +150,16 @@ def check_inputs_conf_spec_stanza_args_broken_correctly(app, reporter):
 
     if modular_inputs.has_specification_file():
         raw_specification_file = modular_inputs.get_raw_specification_file()
+        file_path = os.path.join(modular_inputs.specification_directory_path,
+                                 modular_inputs.specification_filename)
 
         # From https://github.com/splunk/splunk-app-validator
         if len(raw_specification_file.split('\n')) > 1:
             pass
         else:
-            reporter_output = "The inputs.conf.spec has incorrect line breaks."
-            reporter.fail(reporter_output)
+            reporter_output = "The inputs.conf.spec has incorrect line breaks. " \
+                              "File: {}".format(file_path)
+            reporter.fail(reporter_output, file_path)
     else:
         reporter_output = ("No `{}` was detected."
                            ).format(modular_inputs.specification_filename)
@@ -162,6 +176,7 @@ def check_modular_inputs_scripts_exist(app, reporter):
     modular_inputs = app.get_modular_inputs()
     if modular_inputs.has_specification_file():
         if modular_inputs.has_modular_inputs():
+            file_path = os.path.join("README", "inputs.conf.spec")
             for mi in modular_inputs.get_modular_inputs():
 
                 # a) is there a cross plat file (.py) in default/bin?
@@ -175,7 +190,7 @@ def check_modular_inputs_scripts_exist(app, reporter):
                 darwin_arch_exes = mi.count_darwin_arch_exes()
 
                 # b) is there a file per plat in default/bin?
-                if(win_exes > 0 and
+                if(win_exes > 0 or
                         linux_exes > 0):
                     continue
 
@@ -185,8 +200,10 @@ def check_modular_inputs_scripts_exist(app, reporter):
                         darwin_arch_exes > 0):
                     continue
                 else:
-                    reporter.fail("No executable exists for the modular "
-                                  "input '{}'".format(mi.name))
+                    reporter_output = ("No executable exists for the modular "
+                                       "input '{}'. File: {}, Line: {}."
+                                       ).format(mi.name, file_path, mi.lineno)
+                    reporter.fail(reporter_output, file_path, mi.lineno)
         else:
             reporter_output = "No modular inputs were detected."
             reporter.not_applicable(reporter_output)

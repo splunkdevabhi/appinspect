@@ -85,7 +85,7 @@ class ValidationReportJUnitXMLFormatter(validation_report_formatter.ValidationRe
         """
         testcase_element_attributes = {"classname": group.name,
                                        "name": check.name,
-                                       "time": "0"}
+                                       "time": str(reporter.metrics["execution_time"])}
         testcase_element = Element("testcase",
                                    testcase_element_attributes)
         test_case_element_system_out = SubElement(testcase_element, 'system-out')
@@ -116,9 +116,9 @@ class ValidationReportJUnitXMLFormatter(validation_report_formatter.ValidationRe
         if result == "skipped" or result == "not_applicable":
             result_element_to_return = Element("skipped")
         else:
-            for report_record in reporter.report_records(max_records=max_messages):
-                result_combined_messages["filename"] = report_record.filename
-                result_combined_messages["messages"].append(report_record.message)
+            report_records = reporter.report_records(max_records=max_messages)
+            result_combined_messages["filename"] = report_records[0].filename if report_records else 'N/A'
+            result_combined_messages["messages"] = map(lambda rd: rd.message, report_records)
         if result == "failure":
             result_element_to_return = Element("failure",
                                                {"message": result_combined_messages["filename"]})

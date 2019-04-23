@@ -1,17 +1,15 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
-### Deprecated features from Splunk 6.4.
+### Deprecated features from Splunk Enterprise 6.4
 
-These features should not be supported in Splunk 6.4 and onward
-
-- [List of deprecated features](http://docs.splunk.com/Documentation/Splunk/latest/ReleaseNotes/Deprecatedfeatures#Previously_deprecated_features_that_still_work).
-- [Version changes](https://docs.splunk.com/Documentation/Splunk/latest/Installation/ChangesforSplunkappdevelopers).
+The following features should not be supported in Splunk 6.4 or later. For more, see <a href="http://docs.splunk.com/Documentation/Splunk/latest/ReleaseNotes/Deprecatedfeatures#Previously_deprecated_features_that_still_work" target="_blank">Deprecated features</a> and <a href="http://docs.splunk.com/Documentation/Splunk/latest/Installation/ChangesforSplunkappdevelopers" target="_blank">Changes for Splunk App developers</a>.
 """
 
 # Python Standard Libraries
 import logging
 import re
+import os
 # Third-Party Libraries
 import bs4
 # Custom Libraries
@@ -68,7 +66,7 @@ def check_for_simple_xml_single_element_with_deprecated_option_names(app, report
                                " File: {}").format(total_single_elements_with_options_found,
                                                    attributes_found_string,
                                                    relative_filepath)
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, relative_filepath)
         else:
             pass  # Do nothing, everything is fine
 
@@ -81,15 +79,18 @@ def check_web_conf_for_simple_xml_module_render(app, reporter):
     """
     try:
         web_config = app.web_conf()
-        web_config_file_path = "default/web.conf"
+        web_config_file_path = os.path.join("default", "web.conf")
         for section in web_config.sections():
-            for property, value in [(p, v)
-                                    for p, v in section.items()
+            for property, value, lineno in [(p, v, lineno)
+                                    for p, v, lineno in section.items()
                                     if p == "simple_xml_module_render"]:
-                reporter_output = ("File: {}"
-                                   "Stanza: {}").format(web_config_file_path,
-                                                        section.name)
-                reporter.fail(reporter_output)
+                reporter_output = ("File: {}, "
+                                   "Stanza: {}, "
+                                   "Line: {}."
+                                   ).format(web_config_file_path,
+                                            section.name,
+                                            lineno)
+                reporter.fail(reporter_output, web_config_file_path, lineno)
     except:
         reporter_output = ("No web.conf file found.")
         reporter.not_applicable(reporter_output)
@@ -103,17 +104,20 @@ def check_web_conf_for_simple_xml_force_flash_charting(app, reporter):
     """
     try:
         web_config = app.web_conf()
-        web_config_file_path = "default/web.conf"
+        web_config_file_path = os.path.join("default", "web.conf")
 
         for section in web_config.sections():
-            all_secitions_with_flash_charting = [(p, v)
-                                                 for p, v in section.items()
+            all_secitions_with_flash_charting = [(p, v, lineno)
+                                                 for p, v, lineno in section.items()
                                                  if p == "simple_xml_force_flash_charting"]
-            for property, value in all_secitions_with_flash_charting:
-                reporter_output = ("File: {}"
-                                   "Stanza: {}").format(web_config_file_path,
-                                                        section.name)
-                reporter.fail(reporter_output)
+            for property, value, lineno in all_secitions_with_flash_charting:
+                reporter_output = ("File: {}, "
+                                   "Stanza: {}, "
+                                   "Line: {}"
+                                   ).format(web_config_file_path,
+                                            section.name,
+                                            lineno)
+                reporter.fail(reporter_output, web_config_file_path, lineno)
     except:
         reporter_output = ("No web.conf file found.")
         reporter.not_applicable(reporter_output)
@@ -122,7 +126,7 @@ def check_web_conf_for_simple_xml_force_flash_charting(app, reporter):
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_4", "deprecated_feature")
 @splunk_appinspect.cert_version(min="1.1.11")
 def check_for_noninteger_height_option(app, reporter):
-    """Check that `<option name="height">` uses an integer for the value. Do not 
+    """Check that `<option name="height">` uses an integer for the value. Do not
     use `<option name="height">[value]px</option>.`
     """
     # Helper function for determining if string is a number
@@ -149,7 +153,7 @@ def check_for_noninteger_height_option(app, reporter):
             option_content = option_element.string
             if not is_number(option_content):
                 reporter_output = ("File: {}").format(relative_filepath)
-                reporter.fail(reporter_output)
+                reporter.fail(reporter_output, relative_filepath)
             else:
                 pass  # Success- do nothing, it's all good here
 
@@ -169,21 +173,24 @@ def check_for_splunk_web_legacy_mode(app, reporter):
     # appServerPorts is a comma separated list of ports
     try:
         web_config = app.web_conf()
-        web_config_file_path = "default/web.conf"
+        web_config_file_path = os.path.join("default", "web.conf")
 
         property_being_checked = "appServerPorts"
         for section in web_config.sections():
-            all_sections_with_app_server_ports = [(p, v)
-                                                   for p, v in section.items()
+            all_sections_with_app_server_ports = [(p, v, lineno)
+                                                   for p, v, lineno in section.items()
                                                    if p == property_being_checked]
 
-            for property, value in all_sections_with_app_server_ports:
+            for property, value, lineno in all_sections_with_app_server_ports:
                 if(property == property_being_checked and
                         "0" in value.split(",")):
-                    reporter_output = ("File: {}"
-                                       "Stanza: {}").format(web_config_file_path,
-                                                            section.name)
-                    reporter.fail(reporter_output)
+                    reporter_output = ("File: {}, "
+                                       "Stanza: [{}], "
+                                       "Line: {}."
+                                       ).format(web_config_file_path,
+                                                section.name,
+                                                lineno)
+                    reporter.fail(reporter_output, web_config_file_path, lineno)
     except:
         reporter_output = ("No web.conf file found.")
         reporter.not_applicable(reporter_output)
@@ -216,7 +223,7 @@ def check_for_splunk_js_d3chartview(app, reporter):
         reporter_output = ("File: {}"
                            " Line: {}"
                            ).format(match_file, match_line)
-        reporter.fail(reporter_output)
+        reporter.fail(reporter_output, match_file, match_line)
 
 
 @splunk_appinspect.tags("splunk_appinspect", "splunk_6_4", "deprecated_feature")
@@ -246,4 +253,4 @@ def check_for_splunk_js_googlemapsview(app, reporter):
         reporter_output = ("File: {}"
                            " Line: {}"
                            ).format(match_file, match_line)
-        reporter.fail(reporter_output)
+        reporter.fail(reporter_output, match_file, match_line)

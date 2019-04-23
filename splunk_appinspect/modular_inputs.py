@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """This is a helper module to encapsulate the functionality that represents
 Splunk's modular inputs feature.
@@ -80,20 +80,21 @@ class ModularInputs(object):
         return ModularInputs(app)
 
     @staticmethod
-    def modular_input_factory(name, chunked=False):
+    def modular_input_factory(name, lineno, chunked=False):
         """A factory function to retrieve a ModularInput object, which belongs
         to a ModularInputs object (Note the 's').
 
         name (String): The name of a Modular Input. This is the stanza of the
             Modular Inputs specification file. This does NOT include the
             protocol prefix of ://
+        lineno (Int): The lineno of a Modular Input.
         chunked (Boolean): Indicates if the modular input is chunked (a.k.a. mod
             input v2)
 
         Returns:
             ModularInput object: A Modular Input object.
         """
-        return ModularInput(name, chunked=chunked)
+        return ModularInput(name, lineno, chunked=chunked)
 
     # TODO: generalize this to accept the filename and directory
     def has_specification_file(self):
@@ -200,13 +201,13 @@ class ModularInputs(object):
 
         Attributes:
             case_sensitive (Bool): if the search for modular inputs should be
-                case-sensitve
+                case-sensitive
         """
-        for section in self.get_specification_file().section_names():
+        for section in self.get_specification_file().sections():
 
-            mod_input = self.modular_input_factory(section)
-            for key, value in self.get_specification_file().items(section):
-                mod_input.args[key] = [value]
+            mod_input = self.modular_input_factory(section.name, section.lineno)
+            for key, value, lineno in self.get_specification_file().items(section.name):
+                mod_input.args[key] = (value, lineno)
 
             files = []
             for file_resource in self.find_exes(mod_input.name, case_sensitive=case_sensitive):
@@ -251,8 +252,7 @@ class ModularInputs(object):
 
             mod_input.executable_files = list(files)
 
-            if mod_input.executable_files:
-                yield mod_input
+            yield mod_input
 
 
 class ModularInput(object):
@@ -262,6 +262,7 @@ class ModularInput(object):
         name (String): The name of a Modular Input. This is the stanza of the
             Modular Inputs specification file. This does NOT include the
             protocol prefix of ://
+        lineno (Int): The lineno of a Modular Input.
         chunked (Boolean): Indicates if the modular input is chunked (a.k.a. mod
             input v2)
 
@@ -269,6 +270,7 @@ class ModularInput(object):
         name (String): The name of a Modular Input. This is the stanza of the
             Modular Inputs specification file. This does NOT include the
             protocol prefix of ://
+        lineno (Int): The lineno of a Modular Input.
         chunked (Boolean): Indicates if the modular input is chunked (a.k.a. mod
             input v2)
         full_name (String): The name of a Modular Input. This is the stanza of
@@ -300,13 +302,14 @@ class ModularInput(object):
             input, but only with respect to allowed cross platform binaries
     """
 
-    def __init__(self, name, chunked=False):
+    def __init__(self, name, lineno, chunked=False):
         """Returns:
             None
 
         A constructor initializer
         """
         self.name = name.split("://")[0]
+        self.lineno = lineno
         self.chunked = chunked
 
         self.full_name = name
@@ -320,20 +323,21 @@ class ModularInput(object):
         self.cross_plat_exes = []
 
     @staticmethod
-    def factory(name, chunked=False):
+    def factory(name, lineno, chunked=False):
         """A factory function to retrieve a ModularInput object, which belongs
         to a ModularInputs object (Note the 's').
 
         name (String): The name of a Modular Input. This is the stanza of the
             Modular Inputs specification file. This does NOT include the
             protocol prefix of ://
+        lineno (Int): The lineno of a Modular Input.
         chunked (Boolean): Indicates if the modular input is chunked (a.k.a. mod
             input v2)
 
         Returns:
             ModularInput object: A Modular Input object.
         """
-        return ModularInput(name, chunked=chunked)
+        return ModularInput(name, lineno, chunked=chunked)
 
     def args_exist(self):
         return len(self.args) > 0

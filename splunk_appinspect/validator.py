@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """This is the core validation logic used to centralize validation run-time.
 
@@ -160,7 +160,8 @@ class Validator(object):
         self.__emit_event('start_validation', self.listeners, self.app_names)
 
         try:
-            apps = map(lambda x: self.app_class(x), self.app_package_handler.apps.values())
+            apps = [self.app_class(package=app_package)
+                    for app_package in self.app_package_handler.app_packages]
             splunk_args = {}
 
             if 'splunk_version' in self.args:
@@ -308,6 +309,6 @@ def validate_packages(app_package_handler,
         app_class (An App derived object): represents the overall Splunk App
             being validator. It exposes functionality for interacting with an app.
     """
-    vaidator = Validator(app_package_handler, args, groups_to_validate, listeners, resource_manager, app_class)
-    vaidator.validate()
-    return vaidator.validation_report
+    validator = Validator(app_package_handler, args, groups_to_validate, listeners, resource_manager, app_class)
+    validator.validate()
+    return validator.validation_report

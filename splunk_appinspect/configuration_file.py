@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 # Python Standard Libraries
 import re
@@ -68,7 +68,7 @@ class ConfigurationSection(object):
                 yield value
 
     def items(self):
-        return [(property_name, configuration_setting.value)
+        return [(property_name, configuration_setting.value, configuration_setting.lineno)
                 for (property_name, configuration_setting)
                 in self.options.iteritems()]
 

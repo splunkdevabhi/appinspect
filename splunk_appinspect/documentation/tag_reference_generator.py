@@ -8,6 +8,7 @@ import json
 import logging
 import os
 # Third-Party Libraries
+import bs4
 import jinja2
 import markdown
 # Custom Libraries
@@ -43,8 +44,12 @@ def get_tag_reference_documentation(content_type="text/html"):
 
     if content_type == "text/html":
         for key, value in tag_data.iteritems():
+            desc_html_format = markdown.markdown(value["description"])
+            desc_html = bs4.BeautifulSoup(desc_html_format, 'html.parser')
+            # Change the <p> element to a <td>
+            desc_html.contents[0].name = "td"
             tag_data_to_return[key] = {
-                "description": markdown.markdown(value["description"])
+                "description": unicode(desc_html)
             }
     else:
         # Raw string with markdown in line returned
@@ -71,7 +76,7 @@ def generate_tag_reference_as_html(custom_checks_dir):
     template = env.get_template("tag_reference.html")
 
     current_date = datetime.datetime.now()
-    formatted_current_date = current_date.strftime("%m %B, %Y")
+    formatted_current_date = current_date.strftime("%d %B, %Y")
 
     tags_dictionary = get_tag_reference_documentation()
 

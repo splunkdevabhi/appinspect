@@ -1,4 +1,4 @@
-# Copyright 2016 Splunk Inc. All rights reserved.
+# Copyright 2018 Splunk Inc. All rights reserved.
 
 """
 ### JSON file standards
@@ -36,4 +36,4 @@ def check_validate_json_data_is_well_formed(app, reporter):
             reporter_output = ("Malformed JSON file found. "
                                "File: {} "
                                "Error: {}").format(current_file_relative_path, str(e))
-            reporter.fail(reporter_output)
+            reporter.fail(reporter_output, current_file_relative_path)
