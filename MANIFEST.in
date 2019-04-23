@@ -2,5 +2,6 @@
 include license-eula.rtf
 include license-eula.txt
 include README.md
+include splunk_appinspect/version/VERSION.txt
 global-exclude *.pyc *.pyo
 recursive-exclude test *

@@ -3,6 +3,7 @@
 """A setup tools configuration to be used for building and distribution."""
 
 import setuptools
+import os
 
 # Information Configuration Goes Here
 author = "Splunk"
@@ -38,11 +39,19 @@ install_requirements = [
     "lxml>=3.6.4",  # ACD-1330 windows install issue
     "Markdown==2.6.6",
     "painter==0.3.1",
-    "py==1.4.31",
-    "pytest==3.0.0",
+    "py==1.6.0",
+    "pytest==3.8.2",
     "regex>=2017.6.23",  # Python re module does not support PCRE, so use another one
     "six==1.10.0",  # Python 2.7.13 setuptools no longer includes six
+    "python-magic>=0.4.15",
+    "ipaddress==1.0.22",
+    "jsoncomment==0.3.0",
 ]
+if os.name == 'nt':
+    windows_install_requirements = [
+        "pywin32==224",
+    ]
+    install_requirements += windows_install_requirements
 keywords = ["AppInspect",
             "Certification",
             "Splunk",
@@ -59,6 +68,7 @@ name = "splunk-appinspect"
 package_data = {
     "splunk_appinspect": [
         "*.txt",             # Includes the banned_wordslist.txt
+        "version/VERSION.txt",           # Includes the VERSION file
         "checks/**",         # Includes the checks directory
         "templates/*.html",  # Includes the templates for documentation generation
     ]
@@ -67,7 +77,12 @@ platforms = ["MacOS",
              "Microsoft",
              "Unix"]
 scripts = ["scripts/splunk-appinspect"]
-version = "1.5.3.143"
+
+execfile("splunk_appinspect/version/version.py")
+__version__ = get_version(os.path.join(os.path.dirname(os.path.realpath(__file__)), 
+    'splunk_appinspect', 'version'))
+
+# now we have an `__version__` variable
 
 # Setup tools configuration goes here
 setuptools.setup(
@@ -90,5 +105,5 @@ setuptools.setup(
             'splunk-appinspect=splunk_appinspect:main.execute',
         ],
     },
-    version=version
+    version=__version__
 )
