@@ -11,6 +11,7 @@ pipelines:
         caches:
           - pip
         script: # Modify the commands below to build your repository.
+          - apt-get update -y
           - apt-get install python-pip -y
           - pip install --upgrade pip setuptools
           - python setup.py sdist
