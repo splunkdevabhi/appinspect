@@ -289,7 +289,7 @@ def check_that_extracted_splunk_app_contains_default_app_conf_file_with_valid_ve
 
                     # regex matching
                     if len(matcher.match(version_val)) == 0:
-                        reporter.fail(reporter_output, file_name=filename, line_number=lineno)
+                        reporter.warn(reporter_output, file_name=filename, line_number=lineno)
                     elif len(matcher.match(version_val)) == 1:
                         reporter.warn(reporter_output, file_name=filename, line_number=lineno)
                     break

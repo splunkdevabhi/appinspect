@@ -40,7 +40,7 @@ def check_app_version(app, reporter):
                 reporter_output = ("Major, minor, build version numbering "
                                    "is required. File: {}, Line: {}."
                                    ).format(filename, lineno)
-                reporter.fail(reporter_output, filename, lineno)
+                reporter.warn(reporter_output, filename, lineno)
 
         except splunk_appinspect.configuration_file.NoOptionError:
             lineno = config.get_section('launcher').lineno
@@ -53,7 +53,7 @@ def check_app_version(app, reporter):
             reporter_output = ("No launcher section found in app.conf. "
                                "File: {}"
                                ).format(filename)
-            reporter.fail(reporter_output, file_name=filename)
+            reporter.warn(reporter_output, file_name=filename)
     else:
         reporter_output = ("`default/app.conf` does not exist.")
         reporter.not_applicable(reporter_output)
