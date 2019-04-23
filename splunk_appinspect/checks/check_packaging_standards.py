@@ -248,7 +248,7 @@ def check_that_extracted_splunk_app_contains_default_app_conf_file(app, reporter
         reporter.fail(reporter_output)
 
 
-@splunk_appinspect.tags("splunk_appinspect", "appapproval", "cloud", "packaging_standards", "self-service")
+@splunk_appinspect.tags("splunk_appinspect", "appapproval", "cloud", "packaging_standards", "self-service","prelease")
 @splunk_appinspect.cert_version(min="1.5.0")
 def check_that_extracted_splunk_app_contains_default_app_conf_file_with_valid_version_number(app, reporter):
     """Check that the extracted Splunk App contains a `default/app.conf` file
@@ -334,8 +334,8 @@ def check_that_extracted_splunk_app_does_not_contain_files_with_invalid_permissi
 @splunk_appinspect.cert_version(min="1.6.1")
 def check_that_json_schema_is_applicable(app, reporter):
     """Check if json schema is 2.0.0 in app.manifest then fail it.
-    Because schema version of 2.0.0 is not yet compatible with any versions 
-    of the Splunk Cloud. So far, all cloud stack are 7.0 and lower but 
+    Because schema version of 2.0.0 is not yet compatible with any versions
+    of the Splunk Cloud. So far, all cloud stack are 7.0 and lower but
     Json Schema 2.0.0 is only compatible with Splunk 7.1+.
     """
     if app.package.does_working_artifact_contain_app_manifest():
