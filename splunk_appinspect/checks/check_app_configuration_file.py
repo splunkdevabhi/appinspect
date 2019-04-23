@@ -21,7 +21,7 @@ report_display_order = 2
 logger = logging.getLogger(__name__)
 
 
-@splunk_appinspect.tags('splunk_appinspect', 'appapproval')
+@splunk_appinspect.tags('splunk_appinspect', 'appapproval','prerelease')
 @splunk_appinspect.cert_version(min='1.0.0')
 def check_app_version(app, reporter):
     """Check that the `app.conf` contains an application version number in the
