@@ -89,7 +89,7 @@ def check_that_setup_has_not_been_performed(app, reporter):
 @splunk_appinspect.tags('splunk_appinspect')
 @splunk_appinspect.cert_version(min='1.6.0')
 def check_for_invalid_app_names(app, reporter):
-    """Check that `default/app.conf` has `author = <some words are not about Splunk>` must not 
+    """Check that `default/app.conf` has `author = <some words are not about Splunk>` must not
     has attributes `label` or `description` with values of `Splunk App for XXXX`.
     """
     if app.file_exists("default", "app.conf"):
