@@ -5,7 +5,7 @@ dimensions==0.0.2
 futures==3.0.5
 futures-then==0.1.1
 humanfriendly==1.44.7
-jinja2==2.10
+jinja2==2.11.3
 langdetect==1.0.6
 lxml>=3.6.4
 Markdown==2.6.6
