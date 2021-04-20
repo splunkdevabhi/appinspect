@@ -10,7 +10,7 @@ langdetect==1.0.6
 lxml>=3.6.4
 Markdown==2.6.6
 painter==0.3.1
-py==1.6.0
+py==1.10.0
 pytest==3.8.2
 regex>=2017.6.23
 six==1.10.0
